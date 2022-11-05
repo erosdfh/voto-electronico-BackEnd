@@ -12,11 +12,15 @@ import com.votoElectronico.beans.Credenciales;
 import com.votoElectronico.beans.response.UserNotFoundException;
 import com.votoElectronico.dao.CandidatoDao;
 import com.votoElectronico.dao.Conexion;
+import com.votoElectronico.dao.EleccionesDao;
 import com.votoElectronico.dao.usuarioDao;
 import com.votoElectronico.data.ApiError;
+import com.votoElectronico.data.Login;
 import com.votoElectronico.data.UsuarioDto;
 import com.votoElectronico.data.pageResponse;
+import com.votoElectronico.data.resultLoginAlumnoDto;
 import com.votoElectronico.logic.UsuarioLogic;
+import com.votoElectronico.logic.eleccionesLogic;
 
 import java.sql.Connection;
 import java.time.Instant;
@@ -25,7 +29,7 @@ import java.util.List;
 
 
 @Service
-public class UsuarioLogicImpl implements UsuarioLogic {
+public class eleccionesLogicImpl implements eleccionesLogic {
 	
 	@Value("${gcp.gcpcupon.jdbc-url}")
     private String url;
@@ -51,20 +55,21 @@ public class UsuarioLogicImpl implements UsuarioLogic {
     @Value("${prescript-signature}")
     private String url_prescript_signature;
     
-    private static final Logger log = LoggerFactory.getLogger(UsuarioLogicImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(eleccionesLogicImpl.class);
     
         
     Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
 
    @Override
-    public ResponseEntity<ApiError> createPatients (Credenciales cred, UsuarioDto data) throws UserNotFoundException {
+    public ResponseEntity<ApiError> elecciones (Credenciales cred, int idCandidato, int idAlumno) throws UserNotFoundException {
     	ApiError response = new ApiError();
     	String resp = "";
         Connection conn = null;
         try {
             conn = Conexion.getConexion(cred);
-            usuarioDao dao =  new usuarioDao(conn);
-            	resp = dao.createPatients(data);
+            EleccionesDao dao =  new EleccionesDao(conn);
+            	resp = dao.votocandidato(idCandidato);
+            	resp = dao.votoAlumno(idAlumno);
             
            if(!resp.isEmpty()) {
         	   response.setMessage("Success");
@@ -84,86 +89,61 @@ public class UsuarioLogicImpl implements UsuarioLogic {
     }
    
    @Override
-    public ResponseEntity<ApiError> updatePatients (Credenciales cred, UsuarioDto data) throws UserNotFoundException {
-    	ApiError response = new ApiError();
-        Connection conn = null;
-        try {
-            conn = Conexion.getConexion(cred);
-            usuarioDao dao =  new usuarioDao(conn);
-
-           String resp = dao.updatePatients(data);
-           if(!resp.isEmpty()) {
-        	   response.setMessage("Success");
-        	   response.setStatus(true);
-        	   response.setInstant(Instant.now());
-           }else {
-        	   response.setMessage("Ocurrio un Error");
-        	   response.setStatus(false);
-        	   response.setInstant(Instant.now());
-           }
-
-       }catch (Exception ex){
-            System.out.println("error" + ex.getMessage());
-       }
-
-        return new ResponseEntity<>(response,HttpStatus.OK);
-    }
-    
-   @Override
-   public ResponseEntity<ApiError> deleteUsuario (Credenciales cred, Integer data) throws UserNotFoundException {
-   	ApiError response = new ApiError();
+   public pageResponse<resultLoginAlumnoDto> login (Credenciales cred, Login data) throws UserNotFoundException {
+	   	pageResponse<resultLoginAlumnoDto> respons = new pageResponse<>();
+   		List<resultLoginAlumnoDto> resp;
        Connection conn = null;
-       String resp= "";
        try {
            conn = Conexion.getConexion(cred);
-           usuarioDao dao =  new usuarioDao(conn);
-
-   		   resp = dao.deleteUsuario(data);
-          
-          if(!resp.isEmpty()) {
-       	   response.setMessage("Success");
-       	   response.setStatus(true);
-       	   response.setInstant(Instant.now());
-          }else {
-       	   response.setMessage("Ocurrio un Error");
-       	   response.setStatus(false);
-       	   response.setInstant(Instant.now());
-          }
+           EleccionesDao dao =  new EleccionesDao(conn);
+           resp = dao.login(data);
+           
+           	if(!resp.isEmpty()) {
+           		List<resultLoginAlumnoDto> respuesta = new ArrayList<resultLoginAlumnoDto>();
+           		respuesta=resp;
+         	   respons.setStatus(true);
+         	   respons.setTotalItems(0);
+         	   respons.setItems(respuesta);
+            }else {
+         	   respons.setStatus(false);
+         	   respons.setTotalItems(0);
+         	  respons.setItems(resp);
+            }
 
       }catch (Exception ex){
            System.out.println("error" + ex.getMessage());
       }
 
-       return new ResponseEntity<>(response,HttpStatus.OK);
+       return respons;
    }
-    @Override
-    public pageResponse<UsuarioDto> listarUsuario (Credenciales cred, Integer data) throws UserNotFoundException {
-    	List<UsuarioDto> response = new ArrayList<>();
-    	pageResponse<UsuarioDto> respons = new pageResponse<>();
-        Connection conn = null;
-        try {
-            conn = Conexion.getConexion(cred);
-            usuarioDao dao =  new usuarioDao(conn);
-
-            response = dao.listarUsuario(data);
-            
-           if(!response.isEmpty()) {
+   
+   public pageResponse<Integer> conteoAlumnos (Credenciales cred, Integer voto) throws UserNotFoundException{
+	   pageResponse<Integer> respons = new pageResponse<>();
+  		List<Integer> resp;
+      Connection conn = null;
+      try {
+          conn = Conexion.getConexion(cred);
+          EleccionesDao dao =  new EleccionesDao(conn);
+          resp = dao.conteoAlumnos(voto);
+          
+          	if(!resp.isEmpty()) {
         	   respons.setStatus(true);
-        	   respons.setTotalItems(response.size());
-        	   respons.setItems(response);
+        	   respons.setTotalItems(0);
+        	   respons.setItems(resp);
            }else {
         	   respons.setStatus(false);
-        	   respons.setTotalItems(response.size());
-        	   respons.setItems(response);
+        	   respons.setTotalItems(0);
+        	  respons.setItems(resp);
            }
 
-       }catch (Exception ex){
-            System.out.println("error" + ex.getMessage());
-       }
+     }catch (Exception ex){
+          System.out.println("error" + ex.getMessage());
+     }
 
-        return respons;
-    }
-    
+      return respons;
+  
+   }
+   
     public ApiError createApiError(WebRequest request) {
     	ApiError apiError= new ApiError();
     	apiError.setInstant(Instant.now());

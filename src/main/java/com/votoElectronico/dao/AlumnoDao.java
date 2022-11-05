@@ -2,7 +2,10 @@ package com.votoElectronico.dao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.votoElectronico.data.CandidatoDto;
+import com.votoElectronico.data.RegidorDto;
 import com.votoElectronico.data.UsuarioDto;
+import com.votoElectronico.data.alumnoDto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,43 +17,40 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class usuarioDao {
+public class AlumnoDao {
     private Connection conn;
 
 
-    private static final Logger log = LoggerFactory.getLogger(usuarioDao.class);
+    private static final Logger log = LoggerFactory.getLogger(AlumnoDao.class);
 
-    public usuarioDao(Connection conn) {
+    public AlumnoDao(Connection conn) {
         this.conn = conn;
     }
 
-    public String createPatients(UsuarioDto data) {
+    public String createAlumno(alumnoDto data) {
     	String resultado="";
         try {
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String payload = ow.writeValueAsString(data);
 
-            String sql = "{ call create_users(?,?,?,?,?,?) }";
+            String sql = "{ call sp_insertar_alumno(?,?,?,?,?) }";
             CallableStatement cstm = conn.prepareCall(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            String lastname =data.getFirst_surname() == null? "": data.getFirst_surname();
-            String second_name =data.getSecond_surname() == null? "": data.getSecond_surname();
-            String name =data.getName()==null ? "": data.getName();
-            String correo =data.getEmail() == null? "": data.getEmail();
-            String user=data.getName_user() ==null ?"": data.getName_user();
-            String pass=data.getPsw()==null ? "": data.getPsw();
+            String dni =data.getDni() == null? "": data.getDni();
+            String ape_nom =data.getNombresApellidos() == null? "": data.getNombresApellidos();
+            String grad =data.getGrado()==null ? "": data.getGrado();
+            String secc =data.getSeccion() == null? "": data.getSeccion();
+            Integer id_niv =data.getIdNivel() == null? 0: data.getIdNivel();
             
-            cstm.setString(1, lastname);
-            cstm.setString(2, second_name);
-            cstm.setString(3, name);
-            cstm.setString(4, correo);
-            cstm.setString(5, user);
-            cstm.setString(6, pass);
-            
-
+            cstm.setString(1, dni);
+            cstm.setString(2, ape_nom);
+            cstm.setString(3, grad);
+            cstm.setString(4, secc);
+            cstm.setInt(5, id_niv);
+           
             ResultSet rs = cstm.executeQuery();
-            resultado = rs.toString();
-            
-            System.out.print("devuelve valor"+resultado);
+            resultado= rs.toString();
+             
+            System.out.print("devuelve valor: "+resultado);
             rs.close();
             cstm.close();
         } catch (SQLException ex) {
@@ -63,33 +63,29 @@ public class usuarioDao {
 
     }
     
-    public String updatePatients(UsuarioDto data) {
+  
+    
+    public String updateAlumno(alumnoDto data) {
     	String resultado="";
         try {
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String payload = ow.writeValueAsString(data);
-
-            String sql = "{ call update_users(?,?,?,?,?,?,?,?) }";
+            
+            String sql = "{ call sp_update_alumno(?,?,?,?,?,?) }";
             CallableStatement cstm = conn.prepareCall(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            String lastname =data.getFirst_surname() == null? "": data.getFirst_surname();
-            String second_name =data.getSecond_surname() == null? "": data.getSecond_surname();
-            String name =data.getName()==null ? "": data.getName();
-            String correo =data.getEmail() == null? "": data.getEmail();
-            String user=data.getName_user() ==null ?"": data.getName_user();
-            String pass=data.getPsw()==null ? "": data.getPsw();
-            String estado=data.getEstado()==null ? "": data.getEstado();
-            Integer id=data.getIdUsers()==null ? 0: data.getIdUsers();
+            String dni =data.getDni() == null? "": data.getDni();
+            String ape_nom =data.getNombresApellidos() == null? "": data.getNombresApellidos();
+            String grad =data.getGrado()==null ? "": data.getGrado();
+            String secc =data.getSeccion() == null? "": data.getSeccion();
+            Integer id_niv =data.getIdNivel() == null? 0: data.getIdNivel();
+            Integer id=data.getIdalumno() == null? 0: data.getIdalumno(); 
             
-            cstm.setString(1, lastname);
-            cstm.setString(2, second_name);
-            cstm.setString(3, name);
-            cstm.setString(4, correo);
-            cstm.setString(5, user);
-            cstm.setString(6, pass);
-            cstm.setString(7, estado);
-            cstm.setInt(8, id);
-            
-
+            cstm.setString(1, dni);
+            cstm.setString(2, ape_nom);
+            cstm.setString(3, grad);
+            cstm.setString(4, secc);
+            cstm.setInt(5, id_niv);
+            cstm.setInt(6, id);
             ResultSet rs = cstm.executeQuery();
             resultado = rs.toString();
             rs.close();
@@ -104,13 +100,13 @@ public class usuarioDao {
 
     }
     
-    public String deleteUsuario(Integer data) {
+    public String deleteAlumno(Integer data) {
     	String resultado="";
         try {
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String payload = ow.writeValueAsString(data);
             
-            String sql = "{ call sp_delete_users(?) }";
+            String sql = "{ call sp_delete_alumno(?) }";
             CallableStatement cstm = conn.prepareCall(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             Integer id=data == null? 0: data; 
             
@@ -129,27 +125,28 @@ public class usuarioDao {
 
     }
     
-    public List<UsuarioDto> listarUsuario(Integer data) {
-    	List<UsuarioDto> response = new ArrayList<>();
+    public List<alumnoDto> listarAlumno(Integer data) {
+    	List<alumnoDto> response = new ArrayList<>();
     	System.out.print(data);
         try {
             ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
             String payload = ow.writeValueAsString(data);
 
-            String sql = "{ call list_users(?) }";
+            String sql = "{ call sp_listar_alumno(?) }";
             CallableStatement cstm = conn.prepareCall(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             Integer id=data==null ? 0: data;
             
             cstm.setInt(1, id);
             ResultSet rs = cstm.executeQuery();
             while (rs.next()) {
-            	UsuarioDto dato= new UsuarioDto();
-            	dato.setIdUsers(rs.getInt("idUsers"));
-            	dato.setFirst_surname(rs.getString("first_surname"));
-            	dato.setSecond_surname(rs.getString("second_surname"));
-            	dato.setName(rs.getString("name"));
-            	dato.setEmail(rs.getString("email"));
-            	dato.setName_user(rs.getString("name_user"));
+            	alumnoDto dato= new alumnoDto();
+            	dato.setIdalumno(rs.getInt("idalumno"));
+            	dato.setDni(rs.getString("dni"));
+            	dato.setNombresApellidos(rs.getString("apellidos_nombres"));
+            	dato.setGrado(rs.getString("grado"));
+            	dato.setSeccion(rs.getString("seccion"));
+            	dato.setNivel(rs.getString("nivel"));
+            	dato.setIdNivel(rs.getInt("id_nivel"));
             	response.add(dato);
             	
             }

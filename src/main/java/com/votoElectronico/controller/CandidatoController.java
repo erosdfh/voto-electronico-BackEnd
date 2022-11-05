@@ -11,8 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 import com.votoElectronico.beans.Credenciales;
 import com.votoElectronico.data.ApiError;
+import com.votoElectronico.data.CandidatoDto;
+import com.votoElectronico.data.CandidatoGanadorDTO;
+import com.votoElectronico.data.ReporteEleccionGeneralDTO;
+import com.votoElectronico.data.ReporteEleccionGradoDTO;
 import com.votoElectronico.data.UsuarioDto;
 import com.votoElectronico.data.pageResponse;
+import com.votoElectronico.logic.CandidatoLogic;
 import com.votoElectronico.logic.UsuarioLogic;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,10 +28,10 @@ import java.util.Map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@RequestMapping("/usuario")
+@RequestMapping("/candidato")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
-public class UsuarioController {
-    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);
+public class CandidatoController {
+    private static final Logger log = LoggerFactory.getLogger(CandidatoController.class);
     private final String tokenPosu = "basic f7154165-c64f-4316-b5c8-e76cb9348832";
     private final String tokenGenesys = "basic b0137a61-ce2c-4f15-b66b-26d52cca7d5d";
 
@@ -57,17 +62,17 @@ public class UsuarioController {
     private String url_alivia;
     
     @Autowired
-    UsuarioLogic usuario;
+    CandidatoLogic candidato;
 
 
   
-    @PostMapping(value = "/registrarUsuario", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createUsuario(HttpServletRequest request, HttpServletResponse response, @RequestBody UsuarioDto triagedto) {
+    @PostMapping(value = "/registrarCandidato", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createUsuario(HttpServletRequest request, HttpServletResponse response, @RequestBody CandidatoDto dato) {
         String requestTokenHeader = request.getHeader("Authorization");
             try {
               
                 Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
-                ResponseEntity<ApiError> responseRequest = usuario.createPatients(cred, triagedto);
+                ResponseEntity<ApiError> responseRequest = candidato.createCandidato(cred, dato);
 
                 return ResponseEntity.ok(responseRequest);
 
@@ -80,13 +85,13 @@ public class UsuarioController {
             
     }
     
-    @PostMapping(value = "/actualizarUsuario", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateUsuario(HttpServletRequest request, HttpServletResponse response, @RequestBody UsuarioDto triagedto) {
+    @PostMapping(value = "/actualizarCandidato", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateUsuario(HttpServletRequest request, HttpServletResponse response, @RequestBody CandidatoDto dato) {
         String requestTokenHeader = request.getHeader("Authorization");
             try {
               
                 Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
-                ResponseEntity<ApiError> responseRequest = usuario.updatePatients(cred, triagedto);
+                ResponseEntity<ApiError> responseRequest = candidato.updateCandidato(cred, dato);
 
                 return ResponseEntity.ok(responseRequest);
 
@@ -100,14 +105,13 @@ public class UsuarioController {
        // return new ResponseEntity<Map<String, Object>>(HttpStatus.UNAUTHORIZED);
             
     }
-    
-    @GetMapping(value = "/eliminarusuario", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/eliminarCandidato", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<?> deleteUsuario(HttpServletRequest request, HttpServletResponse response, Integer id) {
         String requestTokenHeader = request.getHeader("Authorization");
             try {
               
                 Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
-                ResponseEntity<ApiError> responseRequest = usuario.deleteUsuario(cred, id);
+                ResponseEntity<ApiError> responseRequest = candidato.deleteCandidato(cred, id);
 
                 return ResponseEntity.ok(responseRequest);
 
@@ -120,14 +124,13 @@ public class UsuarioController {
             
     }
 
-    @GetMapping(value = "/listarUsuario", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/listarCandidato", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<?> listUsuario(HttpServletRequest request, HttpServletResponse response, Integer id) {
         String requestTokenHeader = request.getHeader("Authorization");
-        System.out.print("Controller"+id);
             try {
               
                 Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
-                pageResponse<UsuarioDto> responseRequest = usuario.listarUsuario(cred, id);
+                pageResponse<CandidatoDto> responseRequest = candidato.listarCandidato(cred, id);
 
                 return ResponseEntity.ok(responseRequest);
 
@@ -139,7 +142,56 @@ public class UsuarioController {
             }
             
     }
-    
+    @GetMapping(value = "/listarGanador", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> listGanador(HttpServletRequest request, HttpServletResponse response) {
+        String requestTokenHeader = request.getHeader("Authorization");
+            try {
+              
+                Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
+                pageResponse<CandidatoGanadorDTO> responseRequest = candidato.listGanador(cred);
 
+                return ResponseEntity.ok(responseRequest);
+
+
+            } catch (Exception e) {
+                log.error("Error general: " + e.getMessage());
+                e.printStackTrace();
+                return new ResponseEntity<Map<String, Object>>(HttpStatus.UNAUTHORIZED);
+            }
+    }
+    @GetMapping(value = "/listarEleccionPorGrado", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> lisEleccionPorGrado(HttpServletRequest request, HttpServletResponse response, Integer grado) {
+        String requestTokenHeader = request.getHeader("Authorization");
+            try {
+              
+                Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
+                pageResponse<ReporteEleccionGradoDTO> responseRequest = candidato.lisEleccionPorGrado(cred,grado);
+
+                return ResponseEntity.ok(responseRequest);
+
+
+            } catch (Exception e) {
+                log.error("Error general: " + e.getMessage());
+                e.printStackTrace();
+                return new ResponseEntity<Map<String, Object>>(HttpStatus.UNAUTHORIZED);
+            }
+    }
+      
+    @PostMapping(value = "/listarEleccionGeneral", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> listEleccionGeneral(HttpServletRequest request, HttpServletResponse response, @RequestBody ReporteEleccionGeneralDTO data) {
+        String requestTokenHeader = request.getHeader("Authorization");
+            try {
+            	System.out.println("dataEntrada:  "+ data);
+                Credenciales cred = new Credenciales(url, username, password, timeout, read_only, maximunPoolSize, pool_name);
+                pageResponse<ReporteEleccionGeneralDTO> responseRequest = candidato.listEleccionGeneral(cred, data);
+                return ResponseEntity.ok(responseRequest);
+
+
+            } catch (Exception e) {
+                log.error("Error general: " + e.getMessage());
+                e.printStackTrace();
+                return new ResponseEntity<Map<String, Object>>(HttpStatus.UNAUTHORIZED);
+            }
+    }
     
 }

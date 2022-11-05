@@ -13,5 +13,6 @@ import com.votoElectronico.data.pageResponse;
 public interface UsuarioLogic {
 	public ResponseEntity<ApiError> createPatients (Credenciales cred, UsuarioDto data) throws UserNotFoundException ;
     public ResponseEntity<ApiError> updatePatients (Credenciales cred, UsuarioDto data) throws UserNotFoundException ;
+    public ResponseEntity<ApiError> deleteUsuario (Credenciales cred, Integer data) throws UserNotFoundException ;
     public pageResponse<UsuarioDto> listarUsuario (Credenciales cred, Integer data) throws UserNotFoundException ;
 }
